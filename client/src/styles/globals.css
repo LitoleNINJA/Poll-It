@@ -1,0 +1,14 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+.Mui-focused {
+  border: 2px solid #4199FF;
+  color: #4199FF;
+  box-shadow: 0 0 10px 0 rgba(65,153,255,0.45);
+}
+
