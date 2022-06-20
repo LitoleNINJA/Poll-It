@@ -58,20 +58,24 @@ export default function Navbar() {
                 justifyContent: 'center',
                 alignItems: 'center',
             }}>
-                <Typography sx={{
-                    fontWeight: '600',
-                    marginRight: '1rem',
-                    color: '#444444',
-                    ':hover': {
-                        color: '#000000',
-                        cursor: 'pointer',
-                    }
-                }}>Login</Typography>
-                <Button variant="contained" color="primary">
-                    <Typography style={{
+                <Link href="/login">
+                    <Typography sx={{
                         fontWeight: '600',
-                    }}>Sign Up</Typography>
-                </Button>
+                        marginRight: '1rem',
+                        color: '#444444',
+                        ':hover': {
+                            color: '#000000',
+                            cursor: 'pointer',
+                        }
+                    }}>Login</Typography>
+                </Link>
+                <Link href="/signup">
+                    <Button variant="contained" color="primary">
+                        <Typography style={{
+                            fontWeight: '600',
+                        }}>Sign Up</Typography>
+                    </Button>
+                </Link>
             </Box>
         </Box>
     )
