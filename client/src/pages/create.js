@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { Button, Divider, Box, Typography, Input, Menu, MenuItem, Checkbox } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 export default function create() {
 
@@ -277,13 +274,12 @@ export default function create() {
                         width: '100%',
                         display: 'flex',
                         flexDirection: 'column',
-                        m: '2rem 0',
+                        mt: '3rem',
                     }}>
                         <Typography variant="body1" sx={{
                             fontWeight: '600',
                             color: '#929292',
-                            mb: '0.5rem',
-                        }}>Poll Options</Typography>
+                        }}>Poll Settings</Typography>
                         <Box sx={{
                             display: 'flex',
                             flexDirection: 'row',
@@ -380,21 +376,6 @@ export default function create() {
                                     fontWeight: '600',
                                 }}>Set End Date</Typography>
                             </Box>
-
-                            {endDate && (
-                                <Box sx={{}}>
-                                    <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                        <DatePicker
-                                            label="Basic example"
-                                            value={date}
-                                            onChange={(newValue) => {
-                                                setDate(newValue);
-                                            }}
-                                            renderInput={(params) => <TextField {...params} />}
-                                        />
-                                    </LocalizationProvider>
-                                </Box>
-                            )}
                         </Box>
                     </Box>
 
