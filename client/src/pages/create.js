@@ -26,8 +26,7 @@ export default function create() {
     const [multipleVotes, setMultipleVotes] = useState(false);
     const [loginVote, setLoginVote] = useState(false);
     const [comments, setComments] = useState(false);
-    const [endDate, setEndDate] = useState(null);
-    const [date, setDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);=
 
     const handleSubmit = () => {
         console.log(options);
