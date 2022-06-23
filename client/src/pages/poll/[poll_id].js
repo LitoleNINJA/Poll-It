@@ -1,6 +1,6 @@
 import { Box, Typography, Button, Divider, LinearProgress } from '@mui/material';
 import { useRouter } from 'next/router';
-import { motion, useAnimation } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import linkIcon from '../../assets/icon-link.png';
@@ -9,7 +9,9 @@ import whatsappIcon from '../../assets/icon-whatsapp.png';
 
 export default function Post() {
 
-    const controls = useAnimation();
+    const colors = ['#4AD97F', '#FF9E72', '#76ECE9', '#4199FF', '#FF5252', '#FFd06e']
+    colors.sort(() => Math.random() - 0.5);
+
     const router = useRouter()
     const { poll_id } = router.query;
     let poll = {
@@ -146,16 +148,16 @@ export default function Post() {
                         <Box>
                             {poll.options.map((option, i) => (
                                 <Box key={i} sx={{
-                                    boxShadow: largestIndex===i ? '0 7px 14px 0 rgba(118, 236, 233, 0.2)' : '0 7px 14px 0 rgba(0, 0, 0, 0.07)',
+                                    boxShadow: largestIndex === i ? '0 7px 14px 0 rgba(118, 236, 233, 0.2)' : '0 7px 14px 0 rgba(0, 0, 0, 0.07)',
                                     borderRadius: "7px",
                                     p: "2rem 4rem",
                                     backgroundColor: "#ffffff",
                                     m: "2rem 0",
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    ml: largestIndex===i && "2.5rem",
-                                    transform: largestIndex===i ? 'scale(1.05)' : 'scale(1)',
-                                    border: largestIndex===i && '3px solid #76ECE9',
+                                    ml: largestIndex === i && "2.5rem",
+                                    transform: largestIndex === i ? 'scale(1.05)' : 'scale(1)',
+                                    border: largestIndex === i && `3px solid ${colors[i]}`,
                                 }}>
                                     <Box sx={{
                                         display: 'flex',
@@ -178,7 +180,11 @@ export default function Post() {
                                         height: "8px",
                                         borderRadius: "5px",
                                         backgroundColor: "#efefef",
+                                        '& .MuiLinearProgress-bar': {
+                                            backgroundColor: colors[i],
+                                        }
                                     }} />
+
 
                                     <Typography variant="body1" sx={{
                                         color: "#acacac",
