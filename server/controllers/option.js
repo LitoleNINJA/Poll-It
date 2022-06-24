@@ -11,6 +11,19 @@ const getOptions = (req, res, next) => {
     });
 };
 
+const addVote = (req, res, next) => {
+    const optionId = req.params.id;
+    pool.query('UPDATE poll_options SET votes = votes + 1 WHERE id = $1 RETURNING *', [optionId], (err, result) => {
+        if (err) {
+            next(err);
+        } else {
+            res.json(result.rows);
+        }
+    });
+}
+
+
 module.exports = {
-    getOptions
+    getOptions,
+    addVote
 }

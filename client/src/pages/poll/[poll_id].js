@@ -8,6 +8,7 @@ import qrIcon from '../../assets/icon-qr-code.png';
 import whatsappIcon from '../../assets/icon-whatsapp.png';
 import axios from 'axios';
 import Comment from '../../components/Comment';
+import { parseCookies } from 'nookies';
 
 export async function getServerSideProps(context) {
     const { poll_id } = context.query;
@@ -20,6 +21,9 @@ export async function getServerSideProps(context) {
 
 export default function Post({ poll }) {
 
+    const router = useRouter();
+    const cookies = parseCookies();
+    const [user, setUser] = useState(null);
     poll.totalVotes = poll.options.reduce((acc, cur) => acc + cur.votes, 0);
 
     const colors = ['#4AD97F', '#FF9E72', '#4199FF', '#FF5252', '#FFd06e']
@@ -69,6 +73,18 @@ export default function Post({ poll }) {
     }
 
     useEffect(() => {
+        setUser(JSON.parse(cookies.user));
+    }, []);
+
+    useEffect(() => {
+        if (user) {
+            if (poll.voters.includes(user.username)) {
+                setSubmitted(true);
+            }
+        }
+    }, [user]);
+
+    useEffect(() => {
         let largest = 0;
         for (let i = 0; i < poll.options.length; i++) {
             const percentVotes = Math.round((poll.options[i].votes / poll.totalVotes) * 100);
@@ -77,12 +93,30 @@ export default function Post({ poll }) {
                 setLargestIndex(poll.options[i].id);
             }
         }
-        console.log(largestIndex);
     }, []);
 
-    const handleSubmit = () => {
+    const addVote = async (optionId) => {
+        try {
+            const { data } = await axios.post(`/api/option/${optionId}`);
+            console.log(data);
+            data.forEach(option => {
+                poll.options.find(o => o.id === option.id).votes = option.votes;
+            });
 
-        
+            router.replace(router.asPath);
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    const handleSubmit = () => {
+        if (selectedOptions.length === 0) {
+            alert('Please select an option');
+            return;
+        }
+        selectedOptions.forEach(optionId => {
+            addVote(optionId);
+        });
 
         setSelectedOptions([]);
         setSubmitted(true);

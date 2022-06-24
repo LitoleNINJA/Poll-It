@@ -1,12 +1,29 @@
 import { Box, Typography, Input, Button } from '@mui/material';
+import axios from 'axios';
+import { useState } from "react";
+import { useRouter } from 'next/router';
+import { setCookie } from 'nookies'
 
 export default function signup() {
 
+    const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleSubmit = () => {
-        console.log(email, password);
+    const handleSubmit = async () => {
+        try {
+            const { data } = await axios.post('/api/login', {
+                email,
+                password
+            });
+            setCookie(null, 'user', JSON.stringify(data.user), {
+                maxAge: 30 * 24 * 60 * 60,
+                path: '/'
+            });
+            router.push('/');
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     return (

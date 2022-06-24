@@ -14,6 +14,7 @@ const api = (app) => {
     app.get('/api/polls/:id', Poll.getPoll);
 
     app.get('/api/option/:id', Option.getOptions);
+    app.post('/api/option/:id', Option.addVote);
 };
 
 module.exports = api;

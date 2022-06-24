@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import { motion } from "framer-motion";
 import Link from "next/link";
