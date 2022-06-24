@@ -1,8 +1,11 @@
 import '../styles/globals.css';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import Layout from '../components/Layout';
+import axios from 'axios';
 
 function MyApp({ Component, pageProps }) {
+
+  axios.defaults.baseURL = 'http://localhost:5000';
 
   const theme = createTheme({
     typography: {

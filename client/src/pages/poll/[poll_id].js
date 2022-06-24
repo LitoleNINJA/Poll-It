@@ -6,34 +6,24 @@ import Image from 'next/image';
 import linkIcon from '../../assets/icon-link.png';
 import qrIcon from '../../assets/icon-qr-code.png';
 import whatsappIcon from '../../assets/icon-whatsapp.png';
+import axios from 'axios';
 
-export default function Post() {
+export async function getServerSideProps(context) {
+    const { poll_id } = context.query;
+    const res = await axios.get(`/api/polls/${poll_id}`);
+    const poll = res.data;
+    const { data: options } = await axios.get(`/api/option/${poll_id}`);
+    poll.options = options;
+    return { props: { poll } };
+}
 
-    const colors = ['#4AD97F', '#FF9E72', '#76ECE9', '#4199FF', '#FF5252', '#FFd06e']
+export default function Post({ poll }) {
+
+    poll.totalVotes = poll.options.reduce((acc, cur) => acc + cur.votes, 0);
+
+    const colors = ['#4AD97F', '#FF9E72', '#4199FF', '#FF5252', '#FFd06e']
     colors.sort(() => Math.random() - 0.5);
-
-    const router = useRouter()
-    const { poll_id } = router.query;
-    let poll = {
-        id: 1,
-        question: 'India will Win ?',
-        options: [
-            {
-                text: 'Yes',
-                votes: 10
-            },
-            {
-                text: 'No',
-                votes: 20
-            }
-        ],
-        totalVotes: 30,
-        category: 'Social',
-        visibility: 'Public',
-        settings: ['Allow multiple votes', 'Allow comments'],
-        voters: ['1', '2'],
-        user: 'John Doe'
-    }
+    
     const variants = {
         open: {
             x: 20,
@@ -82,9 +72,10 @@ export default function Post() {
             const percentVotes = Math.round((poll.options[i].votes / poll.totalVotes) * 100);
             if (percentVotes > largest) {
                 largest = percentVotes;
-                setLargestIndex(i);
+                setLargestIndex(poll.options[i].id);
             }
         }
+        console.log(largestIndex);
     }, []);
 
     const handleSubmit = () => {
@@ -146,18 +137,18 @@ export default function Post() {
 
                     {submitted ? (
                         <Box>
-                            {poll.options.map((option, i) => (
-                                <Box key={i} sx={{
-                                    boxShadow: largestIndex === i ? '0 7px 14px 0 rgba(118, 236, 233, 0.2)' : '0 7px 14px 0 rgba(0, 0, 0, 0.07)',
+                            {poll.options.map((option) => (
+                                <Box key={option.id} sx={{
+                                    boxShadow: largestIndex === option.id ? '0 7px 14px 0 rgba(118, 236, 233, 0.2)' : '0 7px 14px 0 rgba(0, 0, 0, 0.07)',
                                     borderRadius: "7px",
                                     p: "2rem 4rem",
                                     backgroundColor: "#ffffff",
                                     m: "2rem 0",
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    ml: largestIndex === i && "2.5rem",
-                                    transform: largestIndex === i ? 'scale(1.05)' : 'scale(1)',
-                                    border: largestIndex === i && `3px solid ${colors[i]}`,
+                                    ml: largestIndex === option.id && "2.5rem",
+                                    transform: largestIndex === option.id ? 'scale(1.05)' : 'scale(1)',
+                                    border: largestIndex === option.id && `3px solid ${colors[option.id - 1]}`,
                                 }}>
                                     <Box sx={{
                                         display: 'flex',
@@ -168,7 +159,7 @@ export default function Post() {
                                             color: "#333333",
                                             fontWeight: "700",
                                             mb: "1rem",
-                                        }}> {option.text} </Typography>
+                                        }}> {option.option_text} </Typography>
                                         <Typography variant="h4" sx={{
                                             color: "#333333",
                                             fontWeight: "700",
@@ -181,7 +172,7 @@ export default function Post() {
                                         borderRadius: "5px",
                                         backgroundColor: "#efefef",
                                         '& .MuiLinearProgress-bar': {
-                                            backgroundColor: colors[i],
+                                            backgroundColor: colors[option.id - 1],
                                         }
                                     }} />
 
@@ -196,15 +187,15 @@ export default function Post() {
                         </Box>
                     ) : (
                         <Box>
-                            {poll.options.map((option, index) => (
-                                <motion.div key={index}
+                            {poll.options.map((option) => (
+                                <motion.div key={option.id}
                                     variants={variants}
-                                    animate={isSelected(index) ? "open" : "closed"}
+                                    animate={isSelected(option.id) ? "open" : "closed"}
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    <Box onClick={() => handleOptionSelect(index)} sx={{
-                                        boxShadow: isSelected(index) ? '0 7px 14px 0 rgba(74, 217, 127, 0.2)' : '0 7px 14px 0 rgba(0, 0, 0, 0.07)',
+                                    <Box onClick={() => handleOptionSelect(option.id)} sx={{
+                                        boxShadow: isSelected(option.id) ? '0 7px 14px 0 rgba(74, 217, 127, 0.2)' : '0 7px 14px 0 rgba(0, 0, 0, 0.07)',
                                         borderRadius: "7px",
                                         p: "2rem 4rem",
                                         backgroundColor: "#ffffff",
@@ -212,14 +203,14 @@ export default function Post() {
                                         display: 'flex',
                                         flexDirection: 'row',
                                         alignItems: 'center',
-                                        border: isSelected(index) && '2.5px solid #4AD97F',
+                                        border: isSelected(option.id) && '2.5px solid #4AD97F',
                                         ':hover': {
                                             cursor: 'pointer',
                                             boxShadow: '0px 10px 44px 10px rgb(233, 235, 243)'
                                         }
                                     }}
                                     >
-                                        {isSelected(index) ? (
+                                        {isSelected(option.id) ? (
                                             <svg height="36" viewBox="0 0 36 36" width="36" xmlns="http://www.w3.org/2000/svg"><g fill="none" fillRule="evenodd"><rect fill="#4ad97f" height="36" rx="18" width="36" /><path d="m11.8703205 17.5433483-.1-.1v-4.8452366c0-1.049341-.850659-1.9-1.90000002-1.9s-1.9.850659-1.9 1.9v6.3833313c0 .0378714.00110676.0756044.00328903.125259-.00218958.0350713-.00328903.0703132-.00328903.1056937 0 .9217894.74725795 1.6690473 1.66904733 1.6690473h16.46190539c.9217893 0 1.6690473-.7472579 1.6690473-1.6690473s-.747258-1.6690474-1.6690473-1.6690474z" fill="#fff" stroke="#4ad97f" strokeWidth=".2" transform="matrix(.66913061 -.74314483 .74314483 .66913061 -5.655914 18.876162)" /></g></svg>
                                         ) : (
                                             <svg height="36" viewBox="0 0 36 36" width="36" xmlns="http://www.w3.org/2000/svg"><rect fill="#fff" fillRule="evenodd" height="32.5" rx="16.25" stroke="#e4e4e4" strokeWidth="3.5" width="32.5" x="1.75" y="1.75" /></svg>
@@ -228,7 +219,7 @@ export default function Post() {
                                             color: "#333333",
                                             fontWeight: "700",
                                             ml: "1rem",
-                                        }}> {option.text} </Typography>
+                                        }}> {option.option_text} </Typography>
                                     </Box>
                                 </motion.div>
                             ))}

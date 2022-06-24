@@ -2,56 +2,13 @@ import { useState } from "react";
 import { Box, Typography } from "@mui/material";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import axios from "axios";
 
-export default function Home() {
-
-  const [polls, setPolls] = useState([
-    {
-      id: 1,
-      question: 'India will Win ?',
-      options: [
-        {
-          text: 'Yes',
-          votes: 10
-        },
-        {
-          text: 'No',
-          votes: 20
-        }
-      ],
-      category: 'Social',
-      visibility: 'Public',
-      settings: ['Allow multiple votes', 'Allow comments'],
-      voters: ['1', '2'],
-    },
-    {
-      id: 2,
-      question: 'Will it rain today ?',
-      options: [
-        {
-          text: 'Yes',
-          votes: 100
-        },
-        {
-          text: 'No',
-          votes: 146
-        },
-        {
-          text: 'Maybe',
-          votes: 206
-        }
-      ],
-      category: 'Nature',
-      visibility: 'Public',
-      settings: ['Allow comments'],
-      voters: ['1', '2'],
-    }
-  ]);
+export default function Home({ polls }) {
 
   return (
     <Box sx={{
       width: "100%",
-      height: "100vh",
       backgroundColor: "#fafafa",
       p: "5rem 0",
     }}
@@ -176,3 +133,10 @@ export default function Home() {
     </Box>
   );
 }
+
+export async function getServerSideProps() {
+  const res = await axios.get("/api/polls");
+  const polls = res.data;
+  return { props: { polls } };
+}
+

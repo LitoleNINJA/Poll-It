@@ -32,7 +32,7 @@ const login = (req, res, next) => {
         } else {
             if (result.rows.length > 0) {
                 const user = result.rows[0];
-                if (bcrypt.compareSync(password, user.password)) {
+                if (password === user.user_password || bcrypt.compareSync(password, user.password)) {
                     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '24h' });
                     res.status(200).json({
                         message: 'User logged in successfully',
@@ -44,7 +44,8 @@ const login = (req, res, next) => {
                             token: token
                         }
                     });
-                } else {
+                } 
+                else {
                     res.status(401).json({ error: 'Invalid credentials' });
                 }
             } else {
@@ -62,10 +63,22 @@ const getUsers = (req, res, next) => {
             res.json(result.rows);
         }
     });
-}
+};
+
+const getUser = (req, res, next) => {
+    const id = parseInt(req.params.id);
+    pool.query('SELECT * FROM users WHERE id = $1', [id], (err, result) => {
+        if (err) {
+            next(err);
+        } else {
+            res.json(result.rows[0]);
+        }
+    });
+};
 
 module.exports = {
     register,
     login,
-    getUsers
+    getUsers,
+    getUser
 };
