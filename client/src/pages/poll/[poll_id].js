@@ -73,7 +73,9 @@ export default function Post({ poll }) {
     }
 
     useEffect(() => {
-        setUser(JSON.parse(cookies.user));
+        if (cookies.user_id) {
+            setUser(JSON.parse(cookies.user));
+        }
     }, []);
 
     useEffect(() => {
@@ -94,6 +96,7 @@ export default function Post({ poll }) {
             }
         }
     }, []);
+    
 
     const addVote = async (optionId) => {
         try {
@@ -125,6 +128,22 @@ export default function Post({ poll }) {
     const getPercentVotes = (n) => {
         return Math.round((n / poll.totalVotes) * 100);
     }
+
+    const getTime = () => {
+        const date = new Date(poll.timestamp);
+        const now = new Date();
+        const diff = now - date;
+        const minutes = diff/(1000*60);
+        if(minutes < 60) {
+            return `${Math.round(minutes)} minutes ago`;
+        }
+        const hours = minutes/60;
+        if(hours < 24) {
+            return `${Math.round(hours)} hours ago`;
+        }
+        const days = hours/24;
+        return `${Math.round(days)} days ago`;
+    } 
 
     return (
         <>
@@ -172,7 +191,11 @@ export default function Post({ poll }) {
                             mt: "2rem",
                             mb: "1rem",
                         }}>
-                            Asked by {poll.user} about 9 hours ago
+                            Asked by <b style={{
+                                marginLeft: "0.5rem",
+                                marginRight: "0.5rem",
+                                color: "#666666",
+                            }}>{poll.username}</b> {getTime()}
                         </Typography>
 
                         {submitted ? (

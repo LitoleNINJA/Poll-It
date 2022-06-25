@@ -12,9 +12,13 @@ const api = (app) => {
 
     app.get('/api/polls', Poll.getPolls);
     app.get('/api/polls/:id', Poll.getPoll);
+    app.post('/api/polls', Poll.addPoll);
 
     app.get('/api/option/:id', Option.getOptions);
+    app.post('/api/option', Option.addOption);
     app.post('/api/option/:id', Option.addVote);
+
+
 };
 
 module.exports = api;

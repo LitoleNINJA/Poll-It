@@ -4,7 +4,29 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import axios from "axios";
 
+export async function getServerSideProps() {
+  const res = await axios.get("/api/polls");
+  const polls = res.data;
+  return { props: { polls } };
+};
+
 export default function Home({ polls }) {
+
+  const getTime = (poll) => {
+    const date = new Date(poll.timestamp);
+    const now = new Date();
+    const diff = now - date;
+    const minutes = diff/(1000*60);
+    if(minutes < 60) {
+        return `${Math.round(minutes)} minutes ago`;
+    }
+    const hours = minutes/60;
+    if(hours < 24) {
+        return `${Math.round(hours)} hours ago`;
+    }
+    const days = hours/24;
+    return `${Math.round(days)} days ago`;
+}
 
   return (
     <Box sx={{
@@ -105,7 +127,7 @@ export default function Home({ polls }) {
                   mt: "1rem",
                   color: '#b1b1b1',
                   fontWeight: '500',
-                }}>Created 1h ago</Typography>
+                }}>Created {getTime(poll)}</Typography>
 
                 <Box sx={{
                   position: "absolute",
@@ -132,11 +154,5 @@ export default function Home({ polls }) {
       </Box>
     </Box>
   );
-}
-
-export async function getServerSideProps() {
-  const res = await axios.get("/api/polls");
-  const polls = res.data;
-  return { props: { polls } };
-}
+};
 

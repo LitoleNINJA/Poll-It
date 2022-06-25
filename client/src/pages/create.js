@@ -1,8 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Divider, Box, Typography, Input, Menu, MenuItem, Checkbox } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import { parseCookies  } from 'nookies';
 
 export default function create() {
+
+    const router = useRouter();
+    const [user, setUser] = useState(null);
+    useEffect(() => {
+        const cookies = parseCookies();
+        if(cookies.user) {
+            setUser(JSON.parse(cookies.user));
+        }
+    }, []);
 
     const [anchor1, setAnchor1] = useState(null);
     const [anchor2, setAnchor2] = useState(null);
@@ -26,11 +38,38 @@ export default function create() {
     const [multipleVotes, setMultipleVotes] = useState(false);
     const [loginVote, setLoginVote] = useState(false);
     const [comments, setComments] = useState(false);
-    const [endDate, setEndDate] = useState(null);=
+    const [endDate, setEndDate] = useState(null);
 
-    const handleSubmit = () => {
-        console.log(options);
-        // console.log(question);
+    const handleSubmit = async () => {
+
+        let settings = [];
+        if(multipleVotes) {
+            settings.push('Allow multiple votes');
+        }
+        if(loginVote) {
+            settings.push('Login vote');
+        }
+        if(comments) {
+            settings.push('Allow comments');
+        }
+        if(endDate) {
+            settings.push('End date');
+        }
+
+        const { data } = await axios.post('/api/polls', {
+            question: question,
+            category: tag,
+            visibility: visibility,
+            settings: settings,
+            user_id: user ? user.user_id : null,
+            voters: [],
+        });
+        const res = await axios.post('/api/option', {
+            options: options,
+            pollId: data.id
+        });
+        
+        router.push('/poll/[id]', `/poll/${data.id}`);
     }
 
     return (
@@ -85,6 +124,8 @@ export default function create() {
                             }} />
                     </Box>
 
+
+                    {/* Poll Options */}
                     <Box sx={{
                         display: 'flex',
                         flexDirection: 'column',
@@ -117,6 +158,8 @@ export default function create() {
                         ))}
                     </Box>
 
+                    
+                    {/* Add / Remove Options */}
                     <Box sx={{
                         display: 'flex',
                         flexDirection: 'row',
@@ -129,7 +172,8 @@ export default function create() {
                                 m: '2rem 0',
                             }}><Typography variant='body1' sx={{
                                 fontWeight: '600',
-                            }}>Add another Option +</Typography></Button>
+                            }}>Add another Option +</Typography>
+                        </Button>
 
                         {optionCount > 2 && (
                             <Button variant='contained' size='large'
@@ -156,6 +200,8 @@ export default function create() {
                         height: '5px',
                     }} />
 
+
+                    {/* Poll Category and Visibility */}
                     <Box sx={{
                         width: '100%',
                         display: 'flex',
@@ -263,12 +309,18 @@ export default function create() {
                                     'aria-labelledby': 'basic-button',
                                 }}
                             >
-                                <MenuItem onClick={handleMenu2}>Public</MenuItem>
+                                {!user ? (
+                                    <MenuItem>Public (Login to create Public Polls)</MenuItem>
+                                ) : (
+                                    <MenuItem onClick={handleMenu2}>Public</MenuItem>
+                                )}
                                 <MenuItem onClick={handleMenu2}>Private</MenuItem>
                             </Menu>
                         </Box>
                     </Box>
 
+
+                    {/* Poll Settings */}
                     <Box sx={{
                         width: '100%',
                         display: 'flex',
