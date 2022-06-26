@@ -9,6 +9,8 @@ import whatsappIcon from '../../assets/icon-whatsapp.png';
 import axios from 'axios';
 import Comment from '../../components/Comment';
 import { parseCookies } from 'nookies';
+import ShareLink from '../../components/ShareLink';
+import ShareQRCode from '../../components/ShareQR';
 
 export async function getServerSideProps(context) {
     const { poll_id } = context.query;
@@ -24,7 +26,9 @@ export default function Post({ poll }) {
     const router = useRouter();
     const cookies = parseCookies();
     const [user, setUser] = useState(null);
-    poll.totalVotes = poll.options.reduce((acc, cur) => acc + cur.votes, 0);
+
+    const [linkModal, setLinkModal] = useState(false);
+    const [qrModal, setQrModal] = useState(false);
 
     const colors = ['#4AD97F', '#FF9E72', '#4199FF', '#FF5252', '#FFd06e']
     colors.sort(() => Math.random() - 0.5);
@@ -89,23 +93,23 @@ export default function Post({ poll }) {
     useEffect(() => {
         let largest = 0;
         for (let i = 0; i < poll.options.length; i++) {
-            const percentVotes = Math.round((poll.options[i].votes / poll.totalVotes) * 100);
+            const percentVotes = Math.round((poll.options[i].votes / poll.total_votes) * 100);
             if (percentVotes > largest) {
                 largest = percentVotes;
                 setLargestIndex(poll.options[i].id);
             }
         }
     }, []);
-    
+
 
     const addVote = async (optionId) => {
         try {
-            const { data } = await axios.post(`/api/option/${optionId}`);
-            console.log(data);
+            const { data } = await axios.post(`/api/option/${optionId}`, {
+                pollId: poll.id,
+            });
             data.forEach(option => {
                 poll.options.find(o => o.id === option.id).votes = option.votes;
             });
-
             router.replace(router.asPath);
         } catch (err) {
             console.log(err);
@@ -126,24 +130,24 @@ export default function Post({ poll }) {
     }
 
     const getPercentVotes = (n) => {
-        return Math.round((n / poll.totalVotes) * 100);
+        return Math.round((n / poll.total_votes) * 100);
     }
 
     const getTime = () => {
         const date = new Date(poll.timestamp);
         const now = new Date();
         const diff = now - date;
-        const minutes = diff/(1000*60);
-        if(minutes < 60) {
+        const minutes = diff / (1000 * 60);
+        if (minutes < 60) {
             return `${Math.round(minutes)} minutes ago`;
         }
-        const hours = minutes/60;
-        if(hours < 24) {
+        const hours = minutes / 60;
+        if (hours < 24) {
             return `${Math.round(hours)} hours ago`;
         }
-        const days = hours/24;
+        const days = hours / 24;
         return `${Math.round(days)} days ago`;
-    } 
+    }
 
     return (
         <>
@@ -336,7 +340,7 @@ export default function Post({ poll }) {
                                     color: '#333333',
                                     fontWeight: '700',
                                     mt: '1rem',
-                                }}>{poll.totalVotes}</Typography>
+                                }}>{poll.total_votes}</Typography>
                             </Box>
 
                             <Divider sx={{
@@ -354,7 +358,7 @@ export default function Post({ poll }) {
                                     fontWeight: '600',
                                 }}>Share</Typography>
 
-                                <Box sx={{
+                                <Box onClick={() => setLinkModal(true)} sx={{
                                     display: 'flex',
                                     flexDirection: 'row',
                                     mt: '1rem',
@@ -370,8 +374,22 @@ export default function Post({ poll }) {
                                         color: '#307fd7',
                                     }}>Share Link</Typography>
                                 </Box>
-
-                                <Box sx={{
+   
+                                {linkModal && (
+                                    <Box sx={{
+                                        width: '100vw',
+                                        height: '100vh',
+                                        backgroundColor: 'rgba(0,0,0,0.5)',
+                                        zIndex: '10',
+                                        position: 'fixed',
+                                        top: '0',
+                                        left: '0',
+                                    }}>
+                                        <ShareLink setLinkModal={setLinkModal} />
+                                    </Box>
+                                )}
+                               
+                                <Box onClick={() => setQrModal(true)} sx={{
                                     display: 'flex',
                                     flexDirection: 'row',
                                     mt: '1rem',
@@ -387,6 +405,20 @@ export default function Post({ poll }) {
                                         color: '#a46cff',
                                     }}>Share QR Code</Typography>
                                 </Box>
+
+                                {qrModal && (
+                                    <Box sx={{
+                                        width: '100vw',
+                                        height: '100vh',
+                                        backgroundColor: 'rgba(0,0,0,0.5)',
+                                        zIndex: '10',
+                                        position: 'fixed',
+                                        top: '0',
+                                        left: '0',
+                                    }}>
+                                        <ShareQRCode setQrModal={setQrModal} />
+                                    </Box>
+                                )}
 
                                 <Box sx={{
                                     display: 'flex',

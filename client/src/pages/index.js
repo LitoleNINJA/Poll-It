@@ -1,8 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Box, Typography } from "@mui/material";
 import { motion } from "framer-motion";
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import Link from "next/link";
 import axios from "axios";
+import { useRouter } from "next/router";
+
 
 export async function getServerSideProps() {
   const res = await axios.get("/api/polls");
@@ -10,23 +13,50 @@ export async function getServerSideProps() {
   return { props: { polls } };
 };
 
-export default function Home({ polls }) {
+export default function Home(props) {
+
+  const router = useRouter();
+  const [showMenu, setShowMenu] = useState(false);
+  const [filter, setFilter] = useState("Recent");
+  const [polls, setPolls] = useState(props.polls);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [menuRef]);
+
+  useEffect(() => {
+    if(filter === 'Recent') {
+      polls.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    } else if(filter === 'Popular') {
+      polls.sort((a, b) => b.total_votes - a.total_votes);
+    }
+    router.replace(router.asPath);
+  }, [filter]);
 
   const getTime = (poll) => {
     const date = new Date(poll.timestamp);
     const now = new Date();
     const diff = now - date;
-    const minutes = diff/(1000*60);
-    if(minutes < 60) {
-        return `${Math.round(minutes)} minutes ago`;
+    const minutes = diff / (1000 * 60);
+    if (minutes < 60) {
+      return `${Math.round(minutes)} minutes ago`;
     }
-    const hours = minutes/60;
-    if(hours < 24) {
-        return `${Math.round(hours)} hours ago`;
+    const hours = minutes / 60;
+    if (hours < 24) {
+      return `${Math.round(hours)} hours ago`;
     }
-    const days = hours/24;
+    const days = hours / 24;
     return `${Math.round(days)} days ago`;
-}
+  }
 
   return (
     <Box sx={{
@@ -36,7 +66,7 @@ export default function Home({ polls }) {
     }}
     >
       <Box sx={{
-        width: "50%",
+        width: "50rem",
         m: "0 auto",
         display: "flex",
         flexDirection: "column",
@@ -46,6 +76,7 @@ export default function Home({ polls }) {
           display: "flex",
           flexDirection: "row",
           justifyContent: "space-between",
+          alignItems: "center",
         }}
         >
           <Box
@@ -75,14 +106,62 @@ export default function Home({ polls }) {
             </Typography>
           </Box>
 
-          <Box sx={{
+          <Box onClick={() => setShowMenu(!showMenu)} sx={{
             display: "flex",
+            position: "relative",
             alignItems: "center",
             justifyContent: "center",
+            backgroundColor: !showMenu ? "#F1F1F1" : '#ffffff',
+            height: "fit-content",
+            p: "0.5rem 1rem",
+            borderRadius: "5px",
+            ':hover': {
+              cursor: "pointer",
+            }
           }}
           >
-            recent
+            <Typography variant="body1" sx={{
+              color: "#333333",
+              fontWeight: "600",
+              mr: "1rem",
+            }}>{filter}</Typography>
+            <KeyboardArrowDownIcon />
+
+            {showMenu && (
+              <Box ref={menuRef} sx={{
+                width: "10rem",
+                position: "absolute",
+                display: 'flex',
+                top: "3rem",
+                flexDirection: "column",
+                backgroundColor: "#ffffff",
+                p: "1rem 0",
+                boxShadow: "0 4px 21px 0 rgba(49, 49, 49, 0.2)",
+                borderRadius: "6px",
+                zIndex: "10",
+              }}>
+                <Typography variant="body1" onClick={() => setFilter('Recent')} sx={{
+                  color: "#585D75",
+                  fontWeight: "500",
+                  p: "0.5rem 1.5rem",
+                  ':hover': {
+                    cursor: "pointer",
+                    color: "#4199FF",
+                  }
+                }}>Recent</Typography>
+                <Typography variant="body1" onClick={() => setFilter('Popular')} sx={{
+                  color: "#585D75",
+                  fontWeight: "500",
+                  p: "0.5rem 1.5rem",
+                  ':hover': {
+                    cursor: "pointer",
+                    color: "#4199FF",
+                  }
+                }}>Popular</Typography>
+              </Box>
+            )}
           </Box>
+
         </Box>
 
         {polls && polls.map(poll => (
@@ -95,7 +174,6 @@ export default function Home({ polls }) {
           >
             <Link href="/poll/[poll_id]" as={`/poll/${poll.id}`}  >
               <Box sx={{
-                width: "100%",
                 display: "flex",
                 flexDirection: "column",
                 p: "3rem 4rem",
@@ -143,7 +221,7 @@ export default function Home({ polls }) {
                     p: "0.5rem 1rem",
                     backgroundColor: "#F7FFFA",
                   }}>
-                    Votes : 100
+                    Votes : {poll.total_votes}
                   </Typography>
                 </Box>
               </Box>
