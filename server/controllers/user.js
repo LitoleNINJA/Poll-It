@@ -33,10 +33,10 @@ const login = (req, res, next) => {
             if (result.rows.length > 0) {
                 const user = result.rows[0];
                 if (password === user.user_password || bcrypt.compareSync(password, user.password)) {
-                    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+                    const token = jwt.sign({ id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '24h' });
                     res.status(200).json({
                         user: {
-                            id: user.id,
+                            id: user.user_id,
                             name: user.name,
                             username: user.username,
                             email: user.email,

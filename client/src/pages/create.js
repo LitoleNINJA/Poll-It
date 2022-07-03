@@ -38,7 +38,6 @@ export default function create() {
     const [multipleVotes, setMultipleVotes] = useState(false);
     const [loginVote, setLoginVote] = useState(false);
     const [comments, setComments] = useState(false);
-    const [endDate, setEndDate] = useState(null);
 
     const handleSubmit = async () => {
 
@@ -52,19 +51,16 @@ export default function create() {
         if(comments) {
             settings.push('Allow comments');
         }
-        if(endDate) {
-            settings.push('End date');
-        }
 
         const { data } = await axios.post('/api/polls', {
             question: question,
             category: tag,
             visibility: visibility,
             settings: settings,
-            user_id: user ? user.user_id : null,
+            username: user ? user.username : null,
             voters: [],
         });
-        const res = await axios.post('/api/option', {
+        await axios.post('/api/option', {
             options: options,
             pollId: data.id
         });
@@ -403,29 +399,6 @@ export default function create() {
                                     color: comments ? '#009aff' : '#5f5f5f',
                                     fontWeight: '600',
                                 }}>Allow Comments</Typography>
-                            </Box>
-
-                            <Box onClick={() => setEndDate(!endDate)}
-                                sx={{
-                                    backgroundColor: '#ffffff',
-                                    p: '0.5rem',
-                                    pr: '1rem',
-                                    m: '1.5rem 0 1.5rem',
-                                    border: '2px solid transparent',
-                                    boxShadow: endDate ? '0 6px 10px 0 rgba(65,153,255,0.15)' : '0 2px 4px 0 rgba(0,0,0,0.06)',
-                                    borderRadius: '5px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    flexDirection: 'row',
-                                    ':hover': {
-                                        cursor: 'pointer',
-                                    }
-                                }}>
-                                <Checkbox onChange={() => setEndDate(!endDate)} checked={endDate} />
-                                <Typography variant='body1' sx={{
-                                    color: endDate ? '#009aff' : '#5f5f5f',
-                                    fontWeight: '600',
-                                }}>Set End Date</Typography>
                             </Box>
                         </Box>
                     </Box>

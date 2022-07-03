@@ -22,11 +22,11 @@ const getPoll = (req, res, next) => {
 };
 
 const addPoll = (req, res, next) => {
-    let { question, category, visibility, settings, user_id, voters } = req.body;
-    if(!user_id) {
-        user_id = 3;
+    let { question, category, visibility, settings, username, voters } = req.body;
+    if(!username) {
+        username = 'Anonymous';
     }
-    pool.query('INSERT INTO poll (question, category, visibility, settings, user_id, voters) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', [question, category, visibility, settings, user_id, voters], (err, result) => {
+    pool.query('INSERT INTO poll (question, category, visibility, settings, username, voters, total_votes) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', [question, category, visibility, settings, username, voters, 0], (err, result) => {
         if (err) {
             next(err);
         } else {

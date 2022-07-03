@@ -5,7 +5,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Image from "next/image";
 import LargeQR from "./LargeQR";
 
-export default function ShareQR() {
+export default function ShareQR({ setQrModal }) {
 
     const [qr, setQr] = useState(null);
     const [large, setLarge] = useState(false);
@@ -73,7 +73,7 @@ export default function ShareQR() {
                         }
                     }}>Show Larger Preview</Button>
 
-                    <CloseIcon sx={{
+                    <CloseIcon onClick={() => setQrModal(false)} sx={{
                         position: 'absolute',
                         top: '1rem',
                         right: '1rem',

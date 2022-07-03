@@ -1,14 +1,21 @@
 import { Box, Typography, Input, Button } from '@mui/material';
 import axios from 'axios';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from 'next/router';
-import { setCookie } from 'nookies'
+import { setCookie, parseCookies } from 'nookies';
 
 export default function signup() {
 
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    useEffect(() => {
+        const cookies = parseCookies();
+        if(cookies.user) {
+            router.push('/');
+        }
+    }, []);
 
     const handleSubmit = async () => {
         try {
@@ -20,7 +27,7 @@ export default function signup() {
                 maxAge: 30 * 24 * 60 * 60,
                 path: '/'
             });
-            router.push('/');
+            router.reload();
         } catch (error) {
             console.log(error);
         }
@@ -50,7 +57,7 @@ export default function signup() {
                     Log In to your Poll It account.
                 </Typography>
 
-                <Input placeholder='Email' disableUnderline
+                <Input placeholder='Email' type='email' disableUnderline
                     onChange={(e) => setEmail(e.target.value)}
                     sx={{
                         width: '100%',

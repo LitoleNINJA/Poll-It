@@ -10,7 +10,8 @@ import { useRouter } from "next/router";
 export async function getServerSideProps() {
   const res = await axios.get("/api/polls");
   const polls = res.data;
-  return { props: { polls } };
+  const public_polls = polls.filter(poll => poll.visibility === "public");
+  return { props: { public_polls } };
 };
 
 export default function Home(props) {
@@ -18,7 +19,7 @@ export default function Home(props) {
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
   const [filter, setFilter] = useState("Recent");
-  const [polls, setPolls] = useState(props.polls);
+  const [polls, setPolls] = useState(props.public_polls);
   const menuRef = useRef(null);
 
   useEffect(() => {
