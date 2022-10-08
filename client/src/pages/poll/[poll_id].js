@@ -77,7 +77,7 @@ export default function Post({ poll }) {
     }
 
     useEffect(() => {
-        if (cookies.user_id) {
+        if (cookies.user) {
             setUser(JSON.parse(cookies.user));
         }
     }, []);
