@@ -10,7 +10,7 @@ import { useRouter } from "next/router";
 export async function getServerSideProps() {
   const res = await axios.get("/api/polls");
   const polls = res.data;
-  const public_polls = polls.filter(poll => poll.visibility === "public");
+  const public_polls = polls.filter(poll => poll.visibility === "Public");
   return { props: { public_polls } };
 };
 

@@ -116,7 +116,7 @@ export default function Post({ poll }) {
         }
     }
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (selectedOptions.length === 0) {
             alert('Please select an option');
             return;
@@ -124,7 +124,9 @@ export default function Post({ poll }) {
         selectedOptions.forEach(optionId => {
             addVote(optionId);
         });
-
+        await axios.put(`/api/polls/${poll.id}`, {
+            voter: user.username
+        });
         setSelectedOptions([]);
         setSubmitted(true);
     }
@@ -164,6 +166,7 @@ export default function Post({ poll }) {
                     flexDirection: 'row',
                     justifyContent: 'space-between',
                 }}>
+                    {/* Poll Details */}
                     <Box sx={{
                         width: "65%",
                         display: 'flex',
@@ -294,6 +297,7 @@ export default function Post({ poll }) {
                         )}
                     </Box>
 
+                    {/* Poll Options */}
                     <Box sx={{
                         width: "28%",
                         display: 'flex',
@@ -442,7 +446,7 @@ export default function Post({ poll }) {
                 </Box>
             </Box>
 
-            {submitted && comments && (<Comment />)}
+            {submitted && comments && (<Comment pollId={poll.id} userId={user.user_id} username={user.username} />)}
         </>
 
     )

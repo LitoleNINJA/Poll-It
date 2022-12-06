@@ -35,8 +35,21 @@ const addPoll = (req, res, next) => {
     });
 }
 
+const updatePoll = (req, res, next) => {
+    const id = parseInt(req.params.id);
+    const { voter } = req.body;
+    pool.query('UPDATE poll SET voters = array_append(voters, $1) WHERE id = $2 RETURNING *', [voter, id], (err, result) => {
+        if (err) {
+            next(err);
+        } else {
+            res.status(200).json(result.rows[0]);
+        }
+    });
+}
+
 module.exports = {
     getPolls,
     getPoll,
-    addPoll
+    addPoll,
+    updatePoll
 };
