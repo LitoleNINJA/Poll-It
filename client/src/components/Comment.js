@@ -71,7 +71,7 @@ export default function Comment({ pollId, userId, username }) {
                     <Typography variant='body1' sx={{
                         color: '#aeaeae',
                         fontWeight: '400',
-                    }}>0 comments</Typography>
+                    }}>{comments.length} comments</Typography>
                 </Box>
 
                 <Divider sx={{

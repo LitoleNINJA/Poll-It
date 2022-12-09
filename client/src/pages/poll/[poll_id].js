@@ -94,9 +94,11 @@ export default function Post({ poll }) {
         let largest = 0;
         for (let i = 0; i < poll.options.length; i++) {
             const percentVotes = Math.round((poll.options[i].votes / poll.total_votes) * 100);
+            console.log(i, percentVotes);
             if (percentVotes > largest) {
                 largest = percentVotes;
                 setLargestIndex(poll.options[i].id);
+                console.log(largestIndex);
             }
         }
     }, []);
@@ -218,7 +220,7 @@ export default function Post({ poll }) {
                                         flexDirection: 'column',
                                         ml: largestIndex === option.id && "2.5rem",
                                         transform: largestIndex === option.id ? 'scale(1.05)' : 'scale(1)',
-                                        border: largestIndex === option.id && `3px solid ${colors[option.id - 1]}`,
+                                        border: largestIndex === option.id && `3px solid ${colors[option.id % colors.length]}`,
                                     }}>
                                         <Box sx={{
                                             display: 'flex',
@@ -242,7 +244,7 @@ export default function Post({ poll }) {
                                             borderRadius: "5px",
                                             backgroundColor: "#efefef",
                                             '& .MuiLinearProgress-bar': {
-                                                backgroundColor: colors[option.id - 1],
+                                                backgroundColor: colors[option.id % colors.length],
                                             }
                                         }} />
 
@@ -327,7 +329,7 @@ export default function Post({ poll }) {
                                 }}>Submit Vote</Typography></Button>
                         )}
 
-
+                        {/* Votes and Share links */}
                         <Box sx={{
                             backgroundColor: '#ffffff',
                             display: 'flex',
