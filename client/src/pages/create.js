@@ -326,6 +326,7 @@ export default function create() {
                         <Typography variant="body1" sx={{
                             fontWeight: '600',
                             color: '#929292',
+                            mb: '0.5rem',
                         }}>Poll Settings</Typography>
                         <Box sx={{
                             display: 'flex',
@@ -406,6 +407,7 @@ export default function create() {
                     <Divider sx={{
                         width: '100%',
                         height: '5px',
+                        mt: '2rem',
                     }} />
 
                     <Button variant='contained' size='large' onClick={handleSubmit}
