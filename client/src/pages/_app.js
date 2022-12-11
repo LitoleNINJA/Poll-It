@@ -2,6 +2,8 @@ import '../styles/globals.css';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import Layout from '../components/Layout';
 import axios from 'axios';
+import { useState, useEffect } from 'react';
+import Loader from '../components/Loader';
 
 function MyApp({ Component, pageProps }) {
 
@@ -56,12 +58,26 @@ function MyApp({ Component, pageProps }) {
     },
   };
 
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setLoading(false);
+    }, 4000);
+  }, []);
+
   return (
-    <ThemeProvider theme={theme}>
-      <Layout>
-        <Component {...pageProps} />
-      </Layout>
-    </ThemeProvider>
+    <>
+      {!loading ? (
+        <ThemeProvider theme={theme}>
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        </ThemeProvider>
+      ) : (
+        <Loader />
+      )}
+    </>
   )
 }
 
