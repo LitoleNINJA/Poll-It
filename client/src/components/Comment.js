@@ -1,7 +1,7 @@
 import { Box, Divider, Typography, Input, Button } from '@mui/material';
 import { useState } from 'react';
 import Image from 'next/image';
-import avatar from '../assets/avatar.jpg';
+import avatar from '../assets/avatar.svg';
 import axios from 'axios';
 
 export default function Comment({ pollId, userId, username }) {
@@ -49,11 +49,10 @@ export default function Comment({ pollId, userId, username }) {
         <Box sx={{
             backgroundColor: '#ffffff',
             width: '100%',
-            height: '30rem',
         }}>
             <Box sx={{
-                width: '60%',
-                m: '5rem auto',
+                width: {xs: '80%', lg:'60%'},
+                m: {lg: '5rem auto 3rem', xs: '2rem auto'},
                 display: 'flex',
                 flexDirection: 'column',
             }}>
@@ -86,8 +85,8 @@ export default function Comment({ pollId, userId, username }) {
                         <Box sx={{
                             display: 'flex',
                             flexDirection: 'row',
-                            mt: '3rem',
-                            mb: '2rem',
+                            mt: {lg: '3rem', xs: '1.5rem'},
+                            mb: {lg: '2rem', xs: '1.5rem'},
                         }}>
                             {/* comment img */}
                             <Box>
@@ -113,7 +112,7 @@ export default function Comment({ pollId, userId, username }) {
                                 <Typography variant='body1' sx={{
                                     color: '#bababa',
                                     fontWeight: '600',
-                                    mt: '1.5rem',
+                                    mt: {lg: '1.5rem', xs:'1rem'},
                                 }}>{getTime(comment.timestamp)}</Typography>
                             </Box>  
                         </Box>
@@ -125,14 +124,14 @@ export default function Comment({ pollId, userId, username }) {
                         }} />
                     </Box>
                 ))}
-
                 
 
                 {/* Comment Box */}
+                {userId ? (
                 <Box sx={{
                     display: 'flex',
                     flexDirection: 'row',
-                    mt: '3rem',
+                    mt: {lg: '3rem', xs: '2rem'},
                 }}>
                     <Box>
                         <Image src={avatar} width='64px' height='64px' style={{
@@ -173,7 +172,9 @@ export default function Comment({ pollId, userId, username }) {
                                 fontWeight: '600',
                             }}>Post Comment</Typography></Button>
                     </Box>
-                </Box>
+                </Box>) : (
+                    <Box>Login to post comment !</Box>
+                )}
             </Box>
         </Box>
     )

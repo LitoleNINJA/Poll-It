@@ -1,5 +1,7 @@
-import { Box, Typography, Button, Divider, LinearProgress } from '@mui/material';
-import { useRouter } from 'next/router';
+'use client'
+import { Box, Typography, Button, Divider, LinearProgress, Alert, Snackbar } from '@mui/material';
+import ShareIcon from '@mui/icons-material/Share';
+import router from 'next/router';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -8,22 +10,32 @@ import qrIcon from '../../assets/icon-qr-code.png';
 import whatsappIcon from '../../assets/icon-whatsapp.png';
 import axios from 'axios';
 import Comment from '../../components/Comment';
-import { parseCookies } from 'nookies';
+import { destroyCookie, parseCookies, setCookie } from 'nookies';
 import ShareLink from '../../components/ShareLink';
 import ShareQRCode from '../../components/ShareQR';
+import { io } from 'socket.io-client';
+import crypto from 'crypto';
 
 export async function getServerSideProps(context) {
     const { poll_id } = context.query;
     const res = await axios.get(`/api/polls/${poll_id}`);
     const poll = res.data;
-    const { data: options } = await axios.get(`/api/option/${poll_id}`);
+    if(poll.visibility === 'Private' && poll_id.length !== 32) 
+        return { props: { poll: null }};
+
+    const { data: options } = await axios.get(`/api/option/${poll.id}`);
     poll.options = options;
     return { props: { poll } };
 }
 
 export default function Post({ poll }) {
-
-    const router = useRouter();
+    
+    const [socket, setSocket] = useState(null);
+    if(!poll) {
+        router.push('/');
+        return;
+    }
+    
     const cookies = parseCookies();
     const [user, setUser] = useState(null);
 
@@ -53,6 +65,9 @@ export default function Post({ poll }) {
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [submitted, setSubmitted] = useState(false);
     const [largestIndex, setLargestIndex] = useState(0);
+    const [totalVotes, setTotalVotes] = useState(poll.total_votes);
+    const [pollOptions, setPollOptions] = useState(poll.options);
+    const [error, setError] = useState('');
     const multi = poll.settings.includes('Allow multiple votes');
     const comments = poll.settings.includes('Allow comments');
 
@@ -79,30 +94,61 @@ export default function Post({ poll }) {
     useEffect(() => {
         if (cookies.user) {
             setUser(JSON.parse(cookies.user));
+        } else if(cookies.sessionId) {
+            setUser(cookies.sessionId);
+        } else {
+            const sessionId = crypto.randomBytes(16).toString('hex');
+            setUser(sessionId);
+            setCookie(null, 'sessionId', sessionId, {
+                maxAge: 10 * 24 * 60 * 60,
+                path: '/'
+            });
         }
+        
+        const new_socket = io("http://localhost:3001");
+        setSocket(new_socket);
+        new_socket.on('connect', () => console.log('connected',new_socket.id));
+        new_socket.emit('join', poll.id);
+
+        return () => {
+            console.log('disconnected');
+            new_socket.disconnect();
+            destroyCookie(null, 'sessionId');
+        };
     }, []);
 
     useEffect(() => {
         if (user) {
-            if (poll.voters.includes(user.username)) {
+            if (poll.voters.includes(user.username ? user.username : user)) {
                 setSubmitted(true);
             }
         }
     }, [user]);
 
     useEffect(() => {
+        if(socket === null)
+            return;
+        socket.on('vote', (vote, options) => {
+            console.log('votes recieved', vote, options);
+            poll.total_votes = vote;
+            options.forEach(optionId => {
+                pollOptions.find(o => o.id === optionId).votes += 1
+            });
+            setTotalVotes(vote);
+            setPollOptions(pollOptions);
+        });
+    }, [socket]);
+
+    useEffect(() => {
         let largest = 0;
-        for (let i = 0; i < poll.options.length; i++) {
-            const percentVotes = Math.round((poll.options[i].votes / poll.total_votes) * 100);
-            console.log(i, percentVotes);
+        for (let i = 0; i < pollOptions.length; i++) {
+            const percentVotes = Math.round((pollOptions[i].votes / totalVotes) * 100);
             if (percentVotes > largest) {
                 largest = percentVotes;
-                setLargestIndex(poll.options[i].id);
-                console.log(largestIndex);
+                setLargestIndex(pollOptions[i].id);
             }
         }
-    }, []);
-
+    }, [totalVotes, pollOptions]);
 
     const addVote = async (optionId) => {
         try {
@@ -120,21 +166,25 @@ export default function Post({ poll }) {
 
     const handleSubmit = async () => {
         if (selectedOptions.length === 0) {
-            alert('Please select an option');
+            setError('Please select an option');
             return;
         }
         selectedOptions.forEach(optionId => {
             addVote(optionId);
         });
         await axios.put(`/api/polls/${poll.id}`, {
-            voter: user.username
+            voter: user.username ? user.username : user
         });
+
+        console.log('adding vote');
+        socket.emit('vote', poll, selectedOptions);
+        setTotalVotes(totalVotes+1);
         setSelectedOptions([]);
         setSubmitted(true);
     }
 
     const getPercentVotes = (n) => {
-        return Math.round((n / poll.total_votes) * 100);
+        return Math.round((n / totalVotes) * 100);
     }
 
     const getTime = () => {
@@ -157,20 +207,23 @@ export default function Post({ poll }) {
         <>
             <Box sx={{
                 width: "100%",
-                pt: "5rem",
+                pt: {md: "5rem", xs:'1rem'},
                 backgroundColor: "#fafafa",
-                pb: "6rem",
+                pb: {lg: "6rem", xs: '3rem'},
             }}>
+                {error && <Snackbar open={error !== ''} autoHideDuration={2000} onClose={() => setError('')} anchorOrigin={{ vertical:'top', horizontal: 'center'}} >
+                    <Alert variant='filled' severity='error'>{error}</Alert>
+                </Snackbar> }
                 <Box sx={{
-                    width: "70%",
+                    width: {lg: "70%", xs:'80%'},
                     m: "0 auto",
                     display: 'flex',
-                    flexDirection: 'row',
+                    flexDirection: {md: 'row', xs: 'column'},
                     justifyContent: 'space-between',
                 }}>
                     {/* Poll Details */}
                     <Box sx={{
-                        width: "65%",
+                        width: {lg: "65%", md: '55%'},
                         display: 'flex',
                         flexDirection: 'column',
                     }}>
@@ -184,7 +237,7 @@ export default function Post({ poll }) {
                             <Typography variant="body1" sx={{
                                 fontWeight: "700",
                                 color: "#333333",
-                            }}> {poll.category} </Typography>
+                            }}> Category </Typography>
                         </Box>
 
                         <Typography variant="h3" sx={{
@@ -197,7 +250,7 @@ export default function Post({ poll }) {
                             flexDirection: 'row',
                             color: "#b1b1b1",
                             fontWeight: "500",
-                            mt: "2rem",
+                            mt: {md: "2rem", xs: '0.5rem'},
                             mb: "1rem",
                         }}>
                             Asked by <b style={{
@@ -209,11 +262,11 @@ export default function Post({ poll }) {
 
                         {submitted ? (
                             <Box>
-                                {poll.options.map((option) => (
+                                {pollOptions.map((option) => (
                                     <Box key={option.id} sx={{
                                         boxShadow: largestIndex === option.id ? '0 7px 14px 0 rgba(118, 236, 233, 0.2)' : '0 7px 14px 0 rgba(0, 0, 0, 0.07)',
                                         borderRadius: "7px",
-                                        p: "2rem 4rem",
+                                        p: {lg: "2rem 4rem", xs:'1rem'},
                                         backgroundColor: "#ffffff",
                                         m: "2rem 0",
                                         display: 'flex',
@@ -269,9 +322,9 @@ export default function Post({ poll }) {
                                         <Box onClick={() => handleOptionSelect(option.id)} sx={{
                                             boxShadow: isSelected(option.id) ? '0 7px 14px 0 rgba(74, 217, 127, 0.2)' : '0 7px 14px 0 rgba(0, 0, 0, 0.07)',
                                             borderRadius: "7px",
-                                            p: "2rem 4rem",
+                                            p: {lg: "2rem 4rem", xs:'1rem'},
                                             backgroundColor: "#ffffff",
-                                            m: "2rem 0",
+                                            m: {lg: "2rem 0", xs:'1rem 0'},
                                             display: 'flex',
                                             flexDirection: 'row',
                                             alignItems: 'center',
@@ -301,10 +354,10 @@ export default function Post({ poll }) {
 
                     {/* Poll Options */}
                     <Box sx={{
-                        width: "28%",
+                        width: {lg: "28%", md: "35%"},
                         display: 'flex',
                         flexDirection: 'column',
-                        pt: "4rem",
+                        pt: {lg: "4rem"}
                     }}>
                         {submitted ? (
                             <Box sx={{
@@ -338,15 +391,15 @@ export default function Post({ poll }) {
                             <Box sx={{
                                 p: '2rem 3rem 1rem',
                             }}>
-                                <Typography variant='body1' sx={{
+                                <Typography variant='h6' sx={{
                                     color: '#b1b1b1',
                                     fontWeight: '600',
                                 }}>Votes</Typography>
-                                <Typography variant='h3' sx={{
+                                <Typography variant='h2' sx={{
                                     color: '#333333',
                                     fontWeight: '700',
                                     mt: '1rem',
-                                }}>{poll.total_votes}</Typography>
+                                }}>{totalVotes}</Typography>
                             </Box>
 
                             <Divider sx={{
@@ -354,16 +407,26 @@ export default function Post({ poll }) {
                                 height: '5px',
                             }} />
 
+                            {/* Share */}
                             <Box sx={{
-                                p: '2rem 3rem',
+                                p: {md: '2rem 3rem', xs:'2rem'},
                                 display: 'flex',
                                 flexDirection: 'column',
                             }}>
-                                <Typography variant='body1' sx={{
-                                    color: '#b1b1b1',
-                                    fontWeight: '600',
-                                }}>Share</Typography>
+                                <Box sx={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}>
+                                    <ShareIcon />
+                                    <Typography variant='h6' sx={{
+                                        color: '#b1b1b1',
+                                        fontWeight: '600',
+                                        ml: '1rem'
+                                    }}>Share</Typography>
+                                </Box>
 
+                                {/* Link */}
                                 <Box onClick={() => setLinkModal(true)} sx={{
                                     display: 'flex',
                                     flexDirection: 'row',
@@ -391,10 +454,11 @@ export default function Post({ poll }) {
                                         top: '0',
                                         left: '0',
                                     }}>
-                                        <ShareLink setLinkModal={setLinkModal} />
+                                        <ShareLink setLinkModal={setLinkModal} poll={poll} />
                                     </Box>
                                 )}
                                
+                                {/* QR */}
                                 <Box onClick={() => setQrModal(true)} sx={{
                                     display: 'flex',
                                     flexDirection: 'row',
@@ -426,6 +490,7 @@ export default function Post({ poll }) {
                                     </Box>
                                 )}
 
+                                {/* Whatsapp */}
                                 <Box sx={{
                                     display: 'flex',
                                     flexDirection: 'row',
@@ -448,7 +513,10 @@ export default function Post({ poll }) {
                 </Box>
             </Box>
 
-            {submitted && comments && (<Comment pollId={poll.id} userId={user.user_id} username={user.username} />)}
+            {comments && submitted ?  (<Comment pollId={poll.id} userId={user ? user.id : null} username={user ? user.username : null} />) : (<Box sx={{
+                width: '100%',
+                px: 'auto'
+            }}>Vote to view Comments !</Box>)}
         </>
 
     )

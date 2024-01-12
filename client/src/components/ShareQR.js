@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useState, useEffect } from "react";
 import { Box, Typography, Button } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
@@ -13,8 +12,6 @@ export default function ShareQR({ setQrModal }) {
         setQr(`http://api.qrserver.com/v1/create-qr-code/?data=${window.location.href}!&size=450x450`);
     }, []);
 
-
-
     return (
         <>
             {large ? (<LargeQR qr={qr} setLarge={setLarge} />) : (
@@ -23,7 +20,7 @@ export default function ShareQR({ setQrModal }) {
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: 400,
+                    width: {sm: 400, xs: '80%'},
                     bgcolor: '#ffffff',
                     p: '3rem',
                     borderRadius: '8px',

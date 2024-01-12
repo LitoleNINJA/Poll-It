@@ -3,9 +3,15 @@ import { useState } from "react";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CloseIcon from '@mui/icons-material/Close';
 
-export default function ShareLink({ setLinkModal }) {
+export default function ShareLink({ setLinkModal, poll }) {
     
     const [tooltipOpen, setTooltipOpen] = useState(false);
+
+    var url;
+    if(poll.visibility === 'Private')
+        url = poll.url;
+    else
+        url = poll.id;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -19,7 +25,7 @@ export default function ShareLink({ setLinkModal }) {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: 400,
+            width: {sm: 400, xs: '80%'},
             bgcolor: '#ffffff',
             p: '3rem',
             borderRadius: '8px',
@@ -52,8 +58,9 @@ export default function ShareLink({ setLinkModal }) {
                 <Typography variant="body1" sx={{
                     color: '#555555',
                     fontWeight: '600',
+                    wordBreak: 'break-word'
                 }}>
-                    http://localhost:3000/poll/11
+                    http://localhost:3000/poll/{url}
                 </Typography>
                 <Button onClick={handleCopy} sx={{
                     p: '0',

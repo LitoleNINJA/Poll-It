@@ -30,6 +30,14 @@ function MyApp({ Component, pageProps }) {
       fontSize: '6vw',
     },
   };
+  theme.typography.h4 = {
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '5vw',
+    },
+    [theme.breakpoints.up('sm')]: {
+      fontSize: '2rem',
+    },
+  };
   theme.typography.h5 = {
     [theme.breakpoints.up('md')]: {
       fontSize: '1.5vw',
@@ -50,10 +58,10 @@ function MyApp({ Component, pageProps }) {
     },
   };
   theme.typography.body1 = {
-    [theme.breakpoints.up('md')]: {
+    [theme.breakpoints.up('sm')]: {
       fontSize: '1rem',
     },
-    [theme.breakpoints.down('md')]: {
+    [theme.breakpoints.down('sm')]: {
       fontSize: '3vw',
     },
   };
@@ -63,7 +71,7 @@ function MyApp({ Component, pageProps }) {
   useEffect(() => {
     setTimeout(() => {
       setLoading(false);
-    }, 4000);
+    }, 2000);
   }, []);
 
   return (

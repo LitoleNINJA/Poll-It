@@ -1,4 +1,4 @@
-import { Box, Typography, Input, Button } from '@mui/material';
+import { Box, Typography, Input, Button, Snackbar, Alert } from '@mui/material';
 import axios from 'axios';
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/router';
@@ -9,6 +9,7 @@ export default function signup() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const cookies = parseCookies();
@@ -30,6 +31,8 @@ export default function signup() {
             router.reload();
         } catch (error) {
             console.log(error);
+            if(error.response && error.response.data && error.response.data.error)
+                setError(error.response.data.error);
         }
     }
 
@@ -37,10 +40,13 @@ export default function signup() {
         <Box sx={{
             width: '100%',
             background: '#F4F7FB',
-            p: '10rem 0',
+            p: {lg: '10rem 0', xs:'6rem 0'},
         }}>
+            {error && <Snackbar open={error !== ''} autoHideDuration={2000} onClose={() => setError('')} anchorOrigin={{ vertical:'top', horizontal: 'center'}} >
+                    <Alert variant='filled' severity='error'>{error}</Alert>
+                </Snackbar> }
             <Box sx={{
-                width: '25%',
+                width: {lg: '25%', xs:'70%'},
                 display: 'flex',
                 flexDirection: 'column',
                 margin: '0 auto',

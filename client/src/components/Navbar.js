@@ -1,11 +1,12 @@
 import Link from 'next/link';
-import { parseCookies, destroyCookie  } from 'nookies';
-import avatar from '../assets/avatar.jpg';
+import { parseCookies, destroyCookie } from 'nookies';
+import avatar from '../assets/batman.svg';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { Box, Typography, Button, Divider } from '@mui/material';
 import { useRouter } from 'next/router';
+import Sidemenu from './Sidemenu';
 
 export default function Navbar() {
 
@@ -14,7 +15,7 @@ export default function Navbar() {
     const [showMenu, setShowMenu] = useState(false);
     useEffect(() => {
         const cookies = parseCookies();
-        if(cookies.user) {
+        if (cookies.user) {
             setUser(JSON.parse(cookies.user));
         }
     }, []);
@@ -25,16 +26,26 @@ export default function Navbar() {
         router.push('/login');
     }
 
+    const handleLogoclick = () => {
+        router.push('/');
+    }
+
 
     return (
         <Box sx={{
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            p: '2rem'
+            p: { sm: '2rem', xs: '1rem' }
         }}>
+            {/* Menu */}
+            <Sidemenu />
+
             {/* Logo */}
-            <Box sx={{
+            <Box onClick={handleLogoclick} sx={{
+                ":hover": {
+                    cursor: 'pointer'
+                }
             }}>
                 <Typography variant="h4" style={{
                     fontWeight: '700',
@@ -43,7 +54,7 @@ export default function Navbar() {
 
             {/* Public poll and Create poll */}
             <Box sx={{
-                display: 'flex',
+                display: { sm: 'flex', xs: 'none' },
                 flexDirection: 'row',
                 flexGrow: 1,
                 alignItems: 'center',
@@ -51,11 +62,11 @@ export default function Navbar() {
             }}>
                 <Link href="/">
                     <Typography variant="body1" sx={{
-                        marginRight: '4rem',
+                        marginRight: { sm: '4rem', xs: '1rem' },
                         fontWeight: '600',
                         color: '#666F7A',
                         ':hover': {
-                            color: '#444444',
+                            color: '#4bd97e',
                             cursor: 'pointer',
                         }
                     }}>Public Polls</Typography>
@@ -65,7 +76,7 @@ export default function Navbar() {
                         fontWeight: '600',
                         color: '#666F7A',
                         ':hover': {
-                            color: '#444444',
+                            color: '#4bd97e',
                             cursor: 'pointer',
                         }
                     }}>Create Polls</Typography>
@@ -77,6 +88,7 @@ export default function Navbar() {
             {user ? (
                 <>
                     <Box onClick={() => setShowMenu(!showMenu)} sx={{
+                        ml: 'auto',
                         position: 'relative',
                         display: 'flex',
                         flexDirection: 'row',
@@ -96,14 +108,14 @@ export default function Navbar() {
                     {showMenu && (
                         <Box sx={{
                             position: 'absolute',
-                            top: '5rem',
-                            right: '2rem',
+                            top: {sm: '5rem', xs:'4rem'},
+                            right: {sm: '2rem', xs:'1rem'},
                             display: 'flex',
                             flexDirection: 'column',
                             backgroundColor: '#fff',
                             boxShadow: '0 4px 21px 0 rgba(49, 49, 49, 0.2)',
                             borderRadius: '5px',
-                            pt: '1.5rem',
+                            pt: {sm: '1.5rem', xs: '1rem'},
                             zIndex: '10',
                         }}>
                             <Typography variant="body1" sx={{
@@ -162,7 +174,7 @@ export default function Navbar() {
                 </>
             ) : (
                 <Box sx={{
-                    display: 'flex',
+                    display: { sm: 'flex', xs: 'none' },
                     flexDirection: 'row',
                     justifyContent: 'center',
                     alignItems: 'center',

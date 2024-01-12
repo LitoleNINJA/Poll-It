@@ -3,7 +3,11 @@ const bcrypt = require('bcrypt');
 const pool = require('../db');
 
 const register = (req, res, next) => {
-    const { name, username, email, password } = req.body;
+    const { username, email, password } = req.body;
+    if(!username || !email || !password) {
+        res.status(401).json({ error: 'Email and Password Required' });
+        return;
+    }
     pool.query('SELECT * FROM users WHERE username = $1 OR email = $2', [username, email], (err, result) => {
         if (err) {
             next(err);
@@ -12,7 +16,7 @@ const register = (req, res, next) => {
                 res.status(409).json({ error: 'Username or Email already exists !' });
             } else {
                 const hashedPassword = bcrypt.hashSync(password, 10);
-                pool.query('INSERT INTO users (name, username, email, password) VALUES ($1, $2, $3, $4)', [name, username, email, hashedPassword], (err, result) => {
+                pool.query('INSERT INTO users (username, email, user_password) VALUES ($1, $2, $3)', [username, email, hashedPassword], (err, result) => {
                     if (err) {
                         next(err);
                     } else {
@@ -26,13 +30,16 @@ const register = (req, res, next) => {
 
 const login = (req, res, next) => {
     const { email, password } = req.body;
+    if(!email || !password) {
+        res.status(401).json({ error: 'Email and Password Required' });
+    }
     pool.query('SELECT * FROM users WHERE email = $1', [email], (err, result) => {
         if (err) {
             next(err);
         } else {
             if (result.rows.length > 0) {
                 const user = result.rows[0];
-                if (password === user.user_password || bcrypt.compareSync(password, user.password)) {
+                if (password === user.user_password || bcrypt.compareSync(password, user.user_password)) {
                     const token = jwt.sign({ id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '24h' });
                     res.status(200).json({
                         user: {

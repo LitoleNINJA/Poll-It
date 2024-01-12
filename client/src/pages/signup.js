@@ -1,11 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Box, Typography, Input, Button } from '@mui/material';
+import { setCookie, parseCookies } from 'nookies';
+import { useRouter } from 'next/router';
+import axios from 'axios';
 
 export default function signup() {
 
+    const router = useRouter();
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+
+    useEffect(() => {
+        const cookies = parseCookies();
+        if(cookies.user) {
+            router.push('/');
+        }
+    }, []);
 
     const handleSubmit = () => {
         console.log(email, username, password);
@@ -19,7 +30,7 @@ export default function signup() {
             p: '5rem 0',
         }}>
             <Box sx={{
-                width: '25%',
+                width: {lg: '25%', xs: '70%'},
                 display: 'flex',
                 flexDirection: 'column',
                 margin: '0 auto',

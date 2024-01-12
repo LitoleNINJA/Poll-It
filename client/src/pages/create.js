@@ -1,60 +1,63 @@
-import { useState, useEffect } from 'react';
-import { Button, Divider, Box, Typography, Input, Menu, MenuItem, Checkbox } from '@mui/material';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { useState, useEffect, useRef } from 'react';
+import { Button, Divider, Box, Typography, Input, Menu, MenuItem, Checkbox, TextField, Alert } from '@mui/material';
 import axios from 'axios';
 import { useRouter } from 'next/router';
-import { parseCookies  } from 'nookies';
+import { parseCookies } from 'nookies';
+import Link from 'next/link';
 
 export default function create() {
 
     const router = useRouter();
     const [user, setUser] = useState(null);
+    const ref = useRef(null);
     useEffect(() => {
         const cookies = parseCookies();
-        if(cookies.user) {
+        if (cookies.user) {
             setUser(JSON.parse(cookies.user));
         }
     }, []);
 
-    const [anchor1, setAnchor1] = useState(null);
-    const [anchor2, setAnchor2] = useState(null);
-    const menuOpen1 = Boolean(anchor1);
-    const menuOpen2 = Boolean(anchor2);
-    const handleMenu1 = (event) => {
-        setTag(event.target.innerText);
-        setAnchor1(null);
-    }
-    const handleMenu2 = (event) => {
-        setVisibility(event.target.innerText);
-        setAnchor2(null);
-    }
-
-
     const [question, setQuestion] = useState('');
     const [optionCount, setOptionCount] = useState(2);
     const [options, setOptions] = useState([]);
-    const [tag, setTag] = useState('Eg. Food');
     const [visibility, setVisibility] = useState('Private');
     const [multipleVotes, setMultipleVotes] = useState(false);
     const [loginVote, setLoginVote] = useState(false);
     const [comments, setComments] = useState(false);
+    const [formError, setFormError] = useState(null);
+
+    const validateForm = () => {
+        var error = {}
+        console.log(options)
+        if(!question) 
+            error.question = 'Question is required !';
+        if(options.length < 2)
+            error.option = 'At least 2 options required !'
+        setFormError(error);
+        if(Object.keys(error).length > 0)
+            return false;
+        return true;
+    }
+
 
     const handleSubmit = async () => {
-
+        if(!validateForm()) {
+            setTimeout(() => setFormError(null), 5000);
+            return;
+        }
         let settings = [];
-        if(multipleVotes) {
+        if (multipleVotes) {
             settings.push('Allow multiple votes');
         }
-        if(loginVote) {
+        if (loginVote) {
             settings.push('Login vote');
         }
-        if(comments) {
+        if (comments) {
             settings.push('Allow comments');
         }
 
         const { data } = await axios.post('/api/polls', {
             question: question,
-            category: tag,
             visibility: visibility,
             settings: settings,
             username: user ? user.username : null,
@@ -64,7 +67,7 @@ export default function create() {
             options: options,
             pollId: data.id
         });
-        
+
         router.push('/poll/[id]', `/poll/${data.id}`);
     }
 
@@ -72,7 +75,7 @@ export default function create() {
         <>
             <Divider />
             <Box sx={{
-                pt: '5rem',
+                pt: { lg: '5rem', xs: '2rem' },
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -80,14 +83,14 @@ export default function create() {
                 backgroundColor: '#fafafa',
             }}>
                 <Box sx={{
-                    width: '53rem',
+                    width: { lg: '53rem', xs: '80%' },
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'flex-start',
                 }}>
                     <Typography variant="h3" sx={{
                         fontWeight: '700',
-                        mb: '1rem',
+                        mb: { lg: '1rem', xs: '0.5rem' },
                     }}>Create a Poll</Typography>
                     <Typography variant="body1" sx={{
                         fontWeight: '500',
@@ -97,7 +100,8 @@ export default function create() {
                         Fill the fields below to create a poll.
                     </Typography>
 
-                    <Box sx={{
+                    {/* Poll Question */}
+                    <Box ref={ref} sx={{
                         width: '100%',
                     }}>
                         <Typography variant="body1" sx={{
@@ -107,13 +111,22 @@ export default function create() {
                         }}>
                             Poll Question
                         </Typography>
-                        <Input placeholder='Eg. Who will win today ?' disableUnderline multiline rows={4}
+                        {Boolean(formError) && ref.current.scrollIntoView({ behavior: 'smooth' })}
+                        <TextField placeholder='Eg. Who will win today ?' multiline rows={4}
+                            value={question}
                             onChange={(e) => setQuestion(e.target.value)}
+                            error={Boolean(formError) && Boolean(formError.question)}
+                            helperText={Boolean(formError) && Boolean(formError.question) && formError.question}
+                            FormHelperTextProps={{
+                                style: {
+                                    fontWeight: 600,
+                                    fontSize: "1rem",
+                                    border: 0,
+                                }
+                            }}
                             sx={{
                                 width: '100%',
                                 backgroundColor: '#ffffff',
-                                p: '1rem',
-                                border: '2px solid transparent',
                                 boxShadow: '0 2px 4px 0 rgba(0,0,0,0.06)',
                                 borderRadius: '5px',
                                 fontWeight: '600',
@@ -130,7 +143,7 @@ export default function create() {
                     }}>
                         {[...Array(optionCount)].map((_, i) => (
                             <Box key={i} sx={{
-                                mt: '2rem',
+                                mt: { lg: '2rem', xs: '1rem' },
                             }}>
                                 <Typography variant="body1" sx={{
                                     fontWeight: '600',
@@ -144,7 +157,7 @@ export default function create() {
                                     sx={{
                                         width: '100%',
                                         backgroundColor: '#ffffff',
-                                        p: '1rem',
+                                        p: { md: '1rem', xs: '0.5rem' },
                                         border: '2px solid transparent',
                                         boxShadow: '0 2px 4px 0 rgba(0,0,0,0.06)',
                                         borderRadius: '5px',
@@ -152,13 +165,23 @@ export default function create() {
                                     }} />
                             </Box>
                         ))}
+                        {Boolean(formError) && Boolean(formError.option) && (
+                            <Alert variant='filled' severity='error' sx={{
+                                fontSize: {xs: '0.6rem', md: '0.85rem'},
+                                p: {xs: '0 6px', md: '16px 6px'},
+                                width: 'max-content',
+                                mt: '1rem',
+                            }}>{formError.option}</Alert>
+                        )}
                     </Box>
 
-                    
+
                     {/* Add / Remove Options */}
                     <Box sx={{
+                        width: {xs: '100%', md: 'auto'},
                         display: 'flex',
                         flexDirection: 'row',
+                        justifyContent: 'space-between',
                     }}>
                         <Button variant='contained' size='large'
                             onClick={() => { setOptionCount(optionCount + 1) }}
@@ -168,7 +191,7 @@ export default function create() {
                                 m: '2rem 0',
                             }}><Typography variant='body1' sx={{
                                 fontWeight: '600',
-                            }}>Add another Option +</Typography>
+                            }}>+ Add Option</Typography>
                         </Button>
 
                         {optionCount > 2 && (
@@ -181,7 +204,7 @@ export default function create() {
                                 sx={{
                                     textTransform: 'none',
                                     backgroundColor: '#ff5252',
-                                    m: '2rem 4rem',
+                                    m: {md: '2rem 4rem', xs:'2rem 1rem'},
                                     ':hover': {
                                         backgroundColor: '#c62f2f',
                                     }
@@ -197,7 +220,7 @@ export default function create() {
                     }} />
 
 
-                    {/* Poll Category and Visibility */}
+                    {/* Poll Visibility */}
                     <Box sx={{
                         width: '100%',
                         display: 'flex',
@@ -206,68 +229,7 @@ export default function create() {
                         mt: '2rem',
                     }}>
                         <Box sx={{
-                            width: '48%',
-                        }}>
-                            <Typography variant="body1" sx={{
-                                fontWeight: '600',
-                                color: '#929292',
-                                mb: '0.5rem',
-                            }}>
-                                Poll Category
-                            </Typography>
-                            <Box onClick={(e) => setAnchor1(e.currentTarget)}
-                                sx={{
-                                    backgroundColor: '#ffffff',
-                                    p: '1rem',
-                                    border: '2px solid transparent',
-                                    boxShadow: '0 2px 4px 0 rgba(0,0,0,0.06)',
-                                    borderRadius: '5px',
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                }}>
-                                <Typography variant="body1" sx={{
-                                    fontWeight: '500',
-                                    flexGrow: 1,
-                                }}>{tag}</Typography>
-                                <KeyboardArrowDownIcon />
-                            </Box>
-                            <Menu
-                                anchorEl={anchor1}
-                                open={menuOpen1}
-                                onClose={() => setAnchor1(null)}
-                                PaperProps={{
-                                    style: {
-                                        width: '22vw',
-                                    },
-                                }}
-                                MenuListProps={{
-                                    'aria-labelledby': 'basic-button',
-                                }}
-                            >
-                                <MenuItem onClick={handleMenu1}>Animals</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Art</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Books</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Colors</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Food</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Gaming</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Health</MenuItem>
-                                <MenuItem onClick={handleMenu1}>History</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Movies</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Music</MenuItem>
-                                <MenuItem onClick={handleMenu1}>News</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Politics</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Random</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Science</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Social</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Sports</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Time</MenuItem>
-                                <MenuItem onClick={handleMenu1}>TV</MenuItem>
-                                <MenuItem onClick={handleMenu1}>Web</MenuItem>
-                            </Menu>
-                        </Box>
-
-                        <Box sx={{
-                            width: '48%',
+                            width: { lg: '48%', xs: '50%' },
                         }}>
                             <Typography variant="body1" sx={{
                                 fontWeight: '600',
@@ -276,42 +238,24 @@ export default function create() {
                             }}>
                                 Poll Visibility
                             </Typography>
-                            <Box onClick={(e) => setAnchor2(e.currentTarget)}
-                                sx={{
-                                    backgroundColor: '#ffffff',
-                                    p: '1rem',
-                                    border: '2px solid transparent',
-                                    boxShadow: '0 2px 4px 0 rgba(0,0,0,0.06)',
-                                    borderRadius: '5px',
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                }}>
-                                <Typography variant="body1" sx={{
-                                    fontWeight: '500',
-                                    flexGrow: 1,
-                                }}>{visibility}</Typography>
-                                <KeyboardArrowDownIcon />
-                            </Box>
-                            <Menu
-                                anchorEl={anchor2}
-                                open={menuOpen2}
-                                onClose={() => setAnchor2(null)}
-                                PaperProps={{
-                                    style: {
-                                        width: '22vw',
-                                    },
-                                }}
-                                MenuListProps={{
-                                    'aria-labelledby': 'basic-button',
-                                }}
+                            <TextField
+                                select
+                                fullWidth
+                                name='visibility'
+                                margin='dense'
+                                variant='outlined'
+                                value={visibility}
+                                onChange={(e) => setVisibility(e.target.value)}
                             >
                                 {!user ? (
-                                    <MenuItem>Public (Login to create Public Polls)</MenuItem>
+                                    <Link href='login'>
+                                        <MenuItem>Public (Login to create Public Polls)</MenuItem>
+                                    </Link>
                                 ) : (
-                                    <MenuItem onClick={handleMenu2}>Public</MenuItem>
+                                    <MenuItem value='Public'>Public</MenuItem>
                                 )}
-                                <MenuItem onClick={handleMenu2}>Private</MenuItem>
-                            </Menu>
+                                <MenuItem value='Private'>Private</MenuItem>
+                            </TextField>
                         </Box>
                     </Box>
 
@@ -321,7 +265,7 @@ export default function create() {
                         width: '100%',
                         display: 'flex',
                         flexDirection: 'column',
-                        mt: '3rem',
+                        mt: { lg: '3rem', xs: '1rem' },
                     }}>
                         <Typography variant="body1" sx={{
                             fontWeight: '600',
@@ -332,12 +276,13 @@ export default function create() {
                             display: 'flex',
                             flexDirection: 'row',
                             alignItems: 'center',
+                            justifyContent: 'space-between',
                             flexWrap: 'wrap',
                         }}>
                             <Box onClick={() => setMultipleVotes(!multipleVotes)}
                                 sx={{
                                     backgroundColor: '#ffffff',
-                                    p: '0.5rem',
+                                    p: { md: '0.5rem' },
                                     pr: '1rem',
                                     border: '2px solid transparent',
                                     boxShadow: multipleVotes ? '0 6px 10px 0 rgba(65,153,255,0.15)' : '0 2px 4px 0 rgba(0,0,0,0.06)',
@@ -359,9 +304,9 @@ export default function create() {
                             <Box onClick={() => setLoginVote(!loginVote)}
                                 sx={{
                                     backgroundColor: '#ffffff',
-                                    p: '0.5rem',
+                                    p: { md: '0.5rem' },
                                     pr: '1rem',
-                                    m: '0 1.5rem',
+                                    m: '1rem 0',
                                     border: '2px solid transparent',
                                     boxShadow: loginVote ? '0 6px 10px 0 rgba(65,153,255,0.15)' : '0 2px 4px 0 rgba(0,0,0,0.06)',
                                     borderRadius: '5px',
@@ -382,7 +327,7 @@ export default function create() {
                             <Box onClick={() => setComments(!comments)}
                                 sx={{
                                     backgroundColor: '#ffffff',
-                                    p: '0.5rem',
+                                    p: { md: '0.5rem' },
                                     pr: '1rem',
                                     mr: '1.5rem',
                                     border: '2px solid transparent',
@@ -414,7 +359,7 @@ export default function create() {
                         sx={{
                             textTransform: 'none',
                             backgroundColor: '#41db7b',
-                            m: '2rem 0',
+                            m: { md: '2rem 0', xs: '1rem auto' },
                             p: '1rem 2.5rem',
                             ':hover': {
                                 backgroundColor: '#3bbd6c',
