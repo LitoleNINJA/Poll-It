@@ -15,7 +15,7 @@ const httpServer = http.createServer();
 
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000", 
+    origin: process.env.CLIENT_URL,
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -54,7 +54,7 @@ io.on('connection', (socket) => {
         console.log('user disconnected with id', socket.id);
     });
 });
-httpServer.listen(3001, () => {
+httpServer.listen(process.env.SOCKET_PORT || 3001, () => {
     console.log('socketio server listening');
 });
 
