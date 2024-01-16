@@ -13,8 +13,8 @@ const getComments = (req, res, next) => {
 
 const addComment = (req, res, next) => {
     const pollId = req.params.id;
-    const { comment, user_id, username } = req.body;
-    pool.query('INSERT INTO user_comments (poll_id, comment_text, user_id, username) VALUES ($1, $2, $3, $4) RETURNING *', [pollId, comment, user_id, username], (err, result) => {
+    const { comment, username } = req.body;
+    pool.query('INSERT INTO user_comments (poll_id, comment_text, username) VALUES ($1, $2, $3, $4) RETURNING *', [pollId, comment, username], (err, result) => {
         if (err) {
             next(err);
         } else {

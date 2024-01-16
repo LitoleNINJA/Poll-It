@@ -20,7 +20,7 @@ export default function create() {
     const [question, setQuestion] = useState('');
     const [optionCount, setOptionCount] = useState(2);
     const [options, setOptions] = useState([]);
-    const [visibility, setVisibility] = useState('Private');
+    const [visibility, setVisibility] = useState('private');
     const [multipleVotes, setMultipleVotes] = useState(false);
     const [loginVote, setLoginVote] = useState(false);
     const [comments, setComments] = useState(false);
@@ -56,19 +56,25 @@ export default function create() {
             settings.push('Allow comments');
         }
 
-        const { data } = await axios.post('/api/polls', {
-            question: question,
-            visibility: visibility,
-            settings: settings,
-            username: user ? user.username : null,
-            voters: [],
-        });
-        await axios.post('/api/option', {
-            options: options,
-            pollId: data.id
-        });
-
-        router.push('/poll/[id]', `/poll/${data.id}`);
+        try {
+            const { data } = await axios.post('/api/polls', {
+                question: question,
+                visibility: visibility,
+                settings: settings,
+                username: user ? user.username : null,
+                voters: [],
+            });
+            await axios.post('/api/option', {
+                options: options,
+                pollId: data.id
+            });
+            if(visibility === 'private')
+                router.push('/poll/[id]', `/poll/${data.url}`);
+            else
+                router.push('/poll/[id]', `/poll/${data.id}`);
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     return (
@@ -252,9 +258,9 @@ export default function create() {
                                         <MenuItem>Public (Login to create Public Polls)</MenuItem>
                                     </Link>
                                 ) : (
-                                    <MenuItem value='Public'>Public</MenuItem>
+                                    <MenuItem value='public'>Public</MenuItem>
                                 )}
-                                <MenuItem value='Private'>Private</MenuItem>
+                                <MenuItem value='private'>Private</MenuItem>
                             </TextField>
                         </Box>
                     </Box>

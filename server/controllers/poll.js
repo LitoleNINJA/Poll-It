@@ -1,4 +1,5 @@
 const pool = require('../db');
+const crypto = require('crypto');
 
 const getPolls = (req, res, next) => {
     pool.query('SELECT * FROM poll', (err, result) => {
@@ -38,7 +39,7 @@ const addPoll = (req, res, next) => {
         username = 'Anonymous';
     }
     let url = null;
-    if(visibility === 'Private')
+    if(visibility === 'private')
         url = crypto.randomBytes(16).toString('hex');
     pool.query('INSERT INTO poll (question, visibility, settings, username, voters, total_votes, url) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *', [question, visibility, settings, username, voters, 0, url], (err, result) => {
         if (err) {

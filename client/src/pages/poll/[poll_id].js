@@ -17,15 +17,19 @@ import { io } from 'socket.io-client';
 import crypto from 'crypto';
 
 export async function getServerSideProps(context) {
-    const { poll_id } = context.query;
-    const res = await axios.get(`/api/polls/${poll_id}`);
-    const poll = res.data;
-    if(poll.visibility === 'Private' && poll_id.length !== 32) 
+    try{
+        const { poll_id } = context.query;
+        const res = await axios.get(`/api/polls/${poll_id}`);
+        const poll = res.data;
+        if(poll.visibility === 'private' && poll_id.length !== 32) 
+            return { props: { poll: null }};
+        const { data: options } = await axios.get(`/api/option/${poll.id}`);
+        poll.options = options;
+        return { props: { poll } };
+    } catch(err) {
+        console.log(err);
         return { props: { poll: null }};
-
-    const { data: options } = await axios.get(`/api/option/${poll.id}`);
-    poll.options = options;
-    return { props: { poll } };
+    }
 }
 
 export default function Post({ poll }) {
@@ -513,10 +517,10 @@ export default function Post({ poll }) {
                 </Box>
             </Box>
 
-            {comments && submitted ?  (<Comment pollId={poll.id} userId={user ? user.id : null} username={user ? user.username : null} />) : (<Box sx={{
+            {comments && (submitted ?  (<Comment pollId={poll.id} userId={user ? user.id : null} username={user ? user.username : null} />) : (<Box sx={{
                 width: '100%',
                 px: 'auto'
-            }}>Vote to view Comments !</Box>)}
+            }}>Vote to view Comments !</Box>))}
         </>
 
     )

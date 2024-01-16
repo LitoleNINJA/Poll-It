@@ -7,11 +7,11 @@ export default function ShareLink({ setLinkModal, poll }) {
     
     const [tooltipOpen, setTooltipOpen] = useState(false);
 
-    var url;
-    if(poll.visibility === 'Private')
-        url = poll.url;
+    var url = process.env.NEXT_PUBLIC_APP_URL + '/poll/';
+    if(poll.visibility === 'private')
+        url += poll.url;
     else
-        url = poll.id;
+        url += poll.id;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -60,7 +60,7 @@ export default function ShareLink({ setLinkModal, poll }) {
                     fontWeight: '600',
                     wordBreak: 'break-word'
                 }}>
-                    http://localhost:3000/poll/{url}
+                    {url}
                 </Typography>
                 <Button onClick={handleCopy} sx={{
                     p: '0',
